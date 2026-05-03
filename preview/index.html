@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<title>Kapten.ai — Design Preview</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d0d0d; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; padding:28px 20px 48px; }
+h1 { color:#fff; font-size:11px; letter-spacing:3px; text-transform:uppercase; opacity:.35; text-align:center; margin-bottom:8px; }
+
+/* Mode toggle */
+.mode-toggle { display:flex; justify-content:center; gap:0; margin-bottom:28px; }
+.mode-btn { padding:9px 28px; font-size:13px; font-weight:600; cursor:pointer; border:none; font-family:inherit; transition:all .2s; }
+.mode-btn:first-child { border-radius:20px 0 0 20px; }
+.mode-btn:last-child { border-radius:0 20px 20px 0; }
+.mode-btn.on-dark { background:#0A84FF; color:#fff; }
+.mode-btn.off-dark { background:#2C2C2E; color:#636366; }
+.mode-btn.on-light { background:#005DA8; color:#fff; }
+.mode-btn.off-light { background:#E0E0E0; color:#999; }
+
+/* Section headers */
+.section-label { color:#444; font-size:11px; letter-spacing:2px; text-transform:uppercase; text-align:center; margin-bottom:16px; margin-top:4px; }
+
+.row { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:40px; }
+.phone-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
+.label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
+.dark-label { color:#555; }
+.light-label { color:#888; }
+
+/* Phone frame */
+.phone { width:300px; height:650px; border-radius:40px; overflow:hidden; position:relative; }
+.phone.dark { background:#000; box-shadow:0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,.8); }
+.phone.light { background:#f0f0f0; box-shadow:0 0 0 1px #ccc, 0 32px 64px rgba(0,0,0,.35); }
+.notch { width:90px; height:26px; border-radius:0 0 16px 16px; margin:0 auto; position:relative; z-index:10; }
+.phone.dark .notch { background:#000; }
+.phone.light .notch { background:#f0f0f0; }
+.screen { height:calc(100% - 26px); overflow-y:auto; overflow-x:hidden; scrollbar-width:none; display:flex; flex-direction:column; }
+.screen::-webkit-scrollbar { display:none; }
+.safe { height:40px; flex-shrink:0; }
+
+/* ══════════════════════════════════════════
+   DARK THEME
+══════════════════════════════════════════ */
+.d-bg { background:#000; flex:1; }
+.d-hdr { padding:14px 16px 6px; }
+.d-hdr h2 { color:#fff; font-size:22px; font-weight:800; }
+.d-hdr p  { color:#636366; font-size:12px; margin-top:3px; }
+
+.d-alert { margin:5px 12px; border-radius:10px; padding:11px 12px; display:flex; align-items:flex-start; gap:9px; }
+.d-alert.warn { background:#FF9500; }
+.d-alert.dang { background:#FF3B30; }
+.d-alert-body .msg { color:#fff; font-size:12px; font-weight:600; line-height:1.4; }
+.d-alert-body .act { color:#fff; font-size:11px; margin-top:2px; opacity:.85; }
+.d-ack { background:rgba(255,255,255,.25); border-radius:6px; padding:3px 9px; color:#fff; font-weight:700; font-size:11px; align-self:flex-start; white-space:nowrap; margin-left:auto; }
+
+.d-wx { background:#1C1C1E; border-radius:11px; padding:13px; margin:5px 12px; }
+.d-wx.or { border-left:4px solid #FF9500; }
+.d-wx.gr { border-left:4px solid #34C759; }
+.d-wx-loc { color:#EBEBF5; font-size:11px; opacity:.5; margin-bottom:9px; }
+.d-wx-row { display:flex; justify-content:space-between; }
+.d-wx-stat { display:flex; flex-direction:column; align-items:center; }
+.d-wx-val { color:#fff; font-size:19px; font-weight:700; }
+.d-wx-unit { color:#EBEBF5; font-size:10px; opacity:.45; }
+.d-wx-lbl { color:#EBEBF5; font-size:10px; margin-top:2px; opacity:.6; }
+.d-wx-foot { margin-top:9px; }
+.d-bft { color:#EBEBF5; font-size:10px; opacity:.5; }
+
+.d-sos { background:#1C1C1E; border-radius:11px; padding:13px; margin:5px 12px 12px; }
+.d-sos h3 { color:#FF3B30; font-size:13px; font-weight:700; margin-bottom:6px; }
+.d-sos p { color:#EBEBF5; font-size:12px; margin-bottom:3px; }
+.d-sos span { color:#0A84FF; font-weight:700; }
+
+.d-tabbar { display:flex; background:#1C1C1E; border-top:1px solid #2C2C2E; padding:7px 0 16px; flex-shrink:0; margin-top:auto; }
+.d-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; }
+.d-tab-icon { font-size:18px; }
+.d-tab-lbl { font-size:9px; color:#636366; }
+.d-tab.on .d-tab-lbl { color:#0A84FF; }
+
+/* Map dark */
+.d-map { height:330px; background:linear-gradient(160deg,#0d2137 0%,#1a3a2a 50%,#0d1f2d 100%); position:relative; overflow:hidden; flex-shrink:0; }
+.d-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px); background-size:32px 32px; }
+.d-water { position:absolute; bottom:0; left:0; right:0; height:55%; background:rgba(10,50,100,.45); border-radius:60% 60% 0 0; }
+.d-map svg { position:absolute; inset:0; width:100%; height:100%; }
+.d-rline { stroke:#0A84FF; stroke-width:2.5; fill:none; stroke-dasharray:6 4; }
+.d-pin { position:absolute; display:flex; flex-direction:column; align-items:center; }
+.d-pdot { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; }
+.d-pdot.s { background:#34C759; } .d-pdot.w { background:#0A84FF; } .d-pdot.e { background:#FF9500; }
+.d-plbl { background:rgba(0,0,0,.75); color:#fff; font-size:9px; padding:2px 5px; border-radius:3px; margin-top:2px; white-space:nowrap; }
+.d-hint { position:absolute; top:8px; left:0; right:0; display:flex; justify-content:center; }
+.d-hint-pill { background:rgba(0,0,0,.6); color:#fff; font-size:10px; padding:4px 10px; border-radius:14px; }
+.d-rfoot { background:#1C1C1E; padding:11px 12px 9px; flex-shrink:0; }
+.d-rdis { color:#FF9500; font-size:10px; text-align:center; margin-bottom:5px; }
+.d-rcnt { color:#636366; font-size:11px; margin-bottom:8px; }
+.d-rbtns { display:flex; gap:7px; }
+.d-btn-c { flex:1; padding:11px; border-radius:10px; background:#2C2C2E; text-align:center; color:#FF3B30; font-weight:600; font-size:12px; }
+.d-btn-a { flex:2; padding:11px; border-radius:10px; background:#0A84FF; text-align:center; color:#fff; font-weight:700; font-size:13px; }
+
+/* Dark guide/disclaimer */
+.d-dis-sheet { background:#000; padding:20px 16px 28px; flex:1; }
+.d-dis-sheet .anchor { font-size:32px; text-align:center; display:block; margin-bottom:6px; }
+.d-dis-sheet h2 { color:#fff; font-size:20px; font-weight:800; text-align:center; }
+.d-dis-sheet .sub { color:#636366; font-size:11px; text-align:center; margin-bottom:14px; }
+.d-dis-item { background:#1C1C1E; border-radius:9px; padding:11px 12px; margin-bottom:7px; }
+.d-dis-item h3 { color:#fff; font-size:12px; font-weight:700; margin-bottom:4px; }
+.d-dis-item p { color:#EBEBF5; font-size:11px; line-height:1.6; opacity:.7; }
+.d-dis-item b { color:#fff; opacity:1; }
+.d-dis-btn { background:#0A84FF; border-radius:10px; padding:13px; text-align:center; color:#fff; font-weight:700; font-size:14px; margin-top:12px; }
+.d-dis-foot { color:#636366; font-size:10px; text-align:center; margin-top:7px; }
+
+.d-dcrd { background:#2C1A00; border-radius:10px; padding:12px; margin:5px 12px; border:1px solid rgba(255,149,0,.27); }
+.d-dcrd h3 { color:#FF9500; font-size:13px; font-weight:700; margin-bottom:6px; }
+.d-dcrd p { color:#EBEBF5; font-size:11px; line-height:1.6; opacity:.85; }
+.d-dcrd b { color:#FF3B30; }
+.d-gcrd { background:#1C1C1E; border-radius:10px; padding:11px 12px; margin:4px 12px; display:flex; align-items:flex-start; gap:10px; }
+.d-gicon { font-size:20px; }
+.d-gtxt { flex:1; }
+.d-gtrow { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+.d-gtitle { color:#fff; font-size:13px; font-weight:600; }
+.d-gdesc { color:#EBEBF5; font-size:11px; opacity:.5; line-height:1.4; }
+.tag { border-radius:5px; padding:2px 6px; font-size:9px; font-weight:600; color:#fff; margin-left:5px; white-space:nowrap; }
+
+/* Dark active route */
+.d-ahdr { padding:10px 14px 10px; border-bottom:1px solid #2C2C2E; }
+.d-back { color:#0A84FF; font-size:13px; margin-bottom:4px; }
+.d-atitle { color:#fff; font-size:18px; font-weight:800; }
+.d-abadge { display:inline-block; background:rgba(52,199,89,.13); border-radius:6px; padding:2px 8px; margin-top:4px; }
+.d-abadge span { color:#34C759; font-size:10px; font-weight:700; }
+.d-wps { padding:12px; }
+.d-wps h3 { color:#EBEBF5; font-size:12px; font-weight:700; opacity:.5; margin-bottom:8px; }
+.d-wp { display:flex; justify-content:space-between; align-items:center; background:#1C1C1E; border-radius:9px; padding:10px 11px; margin-bottom:4px; }
+.d-wp-n { color:#fff; font-size:12px; font-weight:600; }
+.d-wp-e { color:#636366; font-size:11px; }
+.d-wp-w { color:#0A84FF; font-size:11px; }
+.d-cbtn { margin:0 12px 12px; padding:12px; border-radius:10px; border:1px solid #FF3B30; text-align:center; color:#FF3B30; font-weight:600; font-size:13px; }
+
+/* ══════════════════════════════════════════
+   LIGHT / SJÖLÄGE THEME
+   High-contrast, sunlight-readable
+══════════════════════════════════════════ */
+.l-bg { background:#F2F4F7; flex:1; }
+.l-hdr { background:#005DA8; padding:14px 16px 12px; }
+.l-hdr h2 { color:#fff; font-size:22px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.3); }
+.l-hdr p  { color:rgba(255,255,255,.8); font-size:12px; margin-top:3px; }
+
+/* Sjöläge alert — much bolder */
+.l-alert { margin:6px 10px; border-radius:10px; padding:12px 14px; display:flex; align-items:flex-start; gap:9px; border-width:2px; border-style:solid; }
+.l-alert.warn { background:#FFF3CD; border-color:#CC7A00; }
+.l-alert.dang { background:#FFE5E5; border-color:#CC0000; }
+.l-alert-icon { font-size:20px; }
+.l-alert-body .msg { color:#1A1A1A; font-size:13px; font-weight:700; line-height:1.4; }
+.l-alert-body .act { color:#333; font-size:12px; margin-top:3px; font-weight:500; }
+.l-ack-warn { background:#CC7A00; border-radius:6px; padding:4px 10px; color:#fff; font-weight:800; font-size:11px; align-self:flex-start; white-space:nowrap; margin-left:auto; }
+.l-ack-dang { background:#CC0000; border-radius:6px; padding:4px 10px; color:#fff; font-weight:800; font-size:11px; align-self:flex-start; white-space:nowrap; margin-left:auto; }
+
+/* Big readable weather card */
+.l-wx { background:#fff; border-radius:12px; padding:14px; margin:6px 10px; border:2px solid #D0D8E4; }
+.l-wx.or { border-top:5px solid #CC7A00; }
+.l-wx.gr { border-top:5px solid #006B2B; }
+.l-wx-loc { color:#555; font-size:11px; margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.l-wx-row { display:flex; justify-content:space-between; }
+.l-wx-stat { display:flex; flex-direction:column; align-items:center; }
+.l-wx-val { color:#000; font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+.l-wx-unit { color:#555; font-size:10px; font-weight:600; }
+.l-wx-lbl { color:#333; font-size:10px; margin-top:2px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+.l-wx-foot { margin-top:10px; padding-top:8px; border-top:1px solid #E8EDF3; display:flex; justify-content:space-between; align-items:center; }
+.l-bft { color:#333; font-size:11px; font-weight:700; }
+.l-bft-badge { background:#005DA8; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px; }
+
+/* SOS card light */
+.l-sos { background:#fff; border-radius:12px; padding:13px; margin:6px 10px 10px; border:2px solid #CC0000; }
+.l-sos h3 { color:#CC0000; font-size:13px; font-weight:800; margin-bottom:7px; text-transform:uppercase; letter-spacing:.5px; }
+.l-sos p { color:#1A1A1A; font-size:13px; margin-bottom:3px; font-weight:500; }
+.l-sos span { color:#005DA8; font-weight:800; font-size:14px; }
+
+/* Light tabbar */
+.l-tabbar { display:flex; background:#fff; border-top:2px solid #D0D8E4; padding:7px 0 16px; flex-shrink:0; margin-top:auto; }
+.l-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; }
+.l-tab-icon { font-size:18px; }
+.l-tab-lbl { font-size:9px; color:#999; font-weight:600; }
+.l-tab.on .l-tab-lbl { color:#005DA8; }
+
+/* Light map */
+.l-map { height:310px; background:#C8DFF0; position:relative; overflow:hidden; flex-shrink:0; border-bottom:3px solid #005DA8; }
+.l-map-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(0,93,168,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,93,168,.08) 1px,transparent 1px); background-size:32px 32px; }
+.l-map-land { position:absolute; bottom:0; left:-10%; width:45%; height:65%; background:#B8D4A0; border-radius:0 60% 0 0; }
+.l-map-land2 { position:absolute; bottom:0; right:-5%; width:35%; height:50%; background:#B8D4A0; border-radius:60% 0 0 0; }
+.l-map svg { position:absolute; inset:0; width:100%; height:100%; }
+.l-rline { stroke:#CC0000; stroke-width:3; fill:none; }
+.l-rline-arr { stroke:#CC0000; stroke-width:3; fill:none; stroke-dasharray:8 3; }
+.l-pin { position:absolute; display:flex; flex-direction:column; align-items:center; }
+.l-pdot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+.l-pdot.s { background:#006B2B; } .l-pdot.w { background:#005DA8; } .l-pdot.e { background:#CC7A00; }
+.l-plbl { background:rgba(255,255,255,.95); color:#000; font-size:9px; font-weight:700; padding:2px 5px; border-radius:3px; margin-top:2px; white-space:nowrap; border:1px solid #ccc; }
+.l-hint { position:absolute; top:8px; left:0; right:0; display:flex; justify-content:center; }
+.l-hint-pill { background:rgba(255,255,255,.9); color:#005DA8; font-size:10px; font-weight:700; padding:4px 10px; border-radius:12px; border:1px solid #ccc; }
+.l-rfoot { background:#fff; padding:11px 12px 9px; flex-shrink:0; border-top:2px solid #D0D8E4; }
+.l-rdis { color:#CC7A00; font-size:10px; font-weight:700; text-align:center; margin-bottom:5px; }
+.l-rcnt { color:#555; font-size:11px; font-weight:600; margin-bottom:8px; }
+.l-rbtns { display:flex; gap:7px; }
+.l-btn-c { flex:1; padding:11px; border-radius:10px; background:#F2F4F7; text-align:center; color:#CC0000; font-weight:700; font-size:12px; border:2px solid #CC0000; }
+.l-btn-a { flex:2; padding:11px; border-radius:10px; background:#005DA8; text-align:center; color:#fff; font-weight:800; font-size:13px; }
+
+/* Light disclaimer */
+.l-dis-sheet { background:#F2F4F7; padding:20px 16px 28px; flex:1; }
+.l-dis-sheet .anchor { font-size:32px; text-align:center; display:block; margin-bottom:6px; }
+.l-dis-sheet h2 { color:#000; font-size:20px; font-weight:800; text-align:center; }
+.l-dis-sheet .sub { color:#555; font-size:11px; text-align:center; margin-bottom:14px; }
+.l-dis-item { background:#fff; border-radius:9px; padding:11px 12px; margin-bottom:7px; border:1px solid #D0D8E4; }
+.l-dis-item h3 { color:#000; font-size:12px; font-weight:700; margin-bottom:4px; }
+.l-dis-item p { color:#333; font-size:11px; line-height:1.6; }
+.l-dis-item b { color:#CC0000; font-weight:800; }
+.l-dis-btn { background:#005DA8; border-radius:10px; padding:13px; text-align:center; color:#fff; font-weight:700; font-size:14px; margin-top:12px; }
+.l-dis-foot { color:#777; font-size:10px; text-align:center; margin-top:7px; }
+
+/* Light guide */
+.l-dcrd { background:#FFF8E6; border-radius:10px; padding:12px; margin:5px 10px; border:2px solid #CC7A00; }
+.l-dcrd h3 { color:#CC7A00; font-size:13px; font-weight:800; margin-bottom:6px; }
+.l-dcrd p { color:#1A1A1A; font-size:11px; line-height:1.6; }
+.l-dcrd b { color:#CC0000; font-weight:800; }
+.l-gcrd { background:#fff; border-radius:10px; padding:11px 12px; margin:4px 10px; display:flex; align-items:flex-start; gap:10px; border:1px solid #D0D8E4; }
+.l-gicon { font-size:20px; }
+.l-gtxt { flex:1; }
+.l-gtrow { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+.l-gtitle { color:#000; font-size:13px; font-weight:700; }
+.l-gdesc { color:#555; font-size:11px; line-height:1.4; }
+.l-ext { background:#E8F0FA; border-radius:10px; padding:12px; margin:4px 10px 12px; border:2px solid #005DA8; }
+.l-ext h3 { color:#000; font-size:14px; font-weight:700; margin-bottom:3px; }
+.l-ext p { color:#444; font-size:11px; margin-bottom:6px; }
+.l-ext a { color:#005DA8; font-size:12px; font-weight:700; text-decoration:none; }
+
+/* Light active route */
+.l-ahdr { background:#005DA8; padding:10px 14px 12px; }
+.l-back { color:rgba(255,255,255,.8); font-size:13px; margin-bottom:4px; }
+.l-atitle { color:#fff; font-size:18px; font-weight:800; }
+.l-abadge { display:inline-block; background:rgba(255,255,255,.2); border-radius:6px; padding:2px 8px; margin-top:4px; border:1px solid rgba(255,255,255,.4); }
+.l-abadge span { color:#fff; font-size:10px; font-weight:700; }
+.l-wps { padding:12px; }
+.l-wps h3 { color:#333; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.l-wp { display:flex; justify-content:space-between; align-items:center; background:#fff; border-radius:9px; padding:10px 11px; margin-bottom:5px; border:1px solid #D0D8E4; }
+.l-wp-n { color:#000; font-size:12px; font-weight:700; }
+.l-wp-e { color:#555; font-size:11px; font-weight:600; }
+.l-wp-w { color:#005DA8; font-size:11px; font-weight:700; }
+.l-cbtn { margin:0 10px 12px; padding:12px; border-radius:10px; border:2px solid #CC0000; text-align:center; color:#CC0000; font-weight:700; font-size:13px; background:#fff; }
+
+/* Sun mode badge */
+.sun-badge { display:inline-flex; align-items:center; gap:5px; background:#FFF3CD; border:1.5px solid #CC7A00; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:700; color:#CC7A00; margin-bottom:12px; }
+</style>
+</head>
+<body>
+<h1>Kapten.ai — Design Preview</h1>
+
+<!-- ROW 1: DARK THEME -->
+<div class="section-label" style="color:#444;">🌙 Nattläge / inomhus</div>
+<div class="row" id="dark-row">
+
+  <!-- D1: Disclaimer -->
+  <div class="phone-wrap">
+    <div class="phone dark">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="d-dis-sheet">
+          <span class="anchor">⚓</span>
+          <h2>Viktig information</h2>
+          <p class="sub">Läs igenom innan du använder Kapten.ai</p>
+          <div class="d-dis-item"><h3>🗺️ Ersätter inte sjökort</h3><p>Kapten.ai ersätter <b>inte</b> officiella sjökort eller gällande sjöfartsregler.</p></div>
+          <div class="d-dis-item"><h3>🧭 Ej navigationsinstrument</h3><p>Ha alltid kompass och sjökort ombord. GPS i mobilen är ej tillförlitlig nog.</p></div>
+          <div class="d-dis-item"><h3>🆘 Vid nödsituation</h3><p>JRCC: <b>114 14</b> · VHF kanal <b>16</b> · SSRS: <b>0771-990 100</b></p></div>
+          <div class="d-dis-btn">Jag förstår och accepterar</div>
+          <p class="d-dis-foot">Du kan alltid läsa detta igen under Guider</p>
+        </div>
+      </div>
+    </div>
+    <div class="label dark-label">Disclaimer</div>
+  </div>
+
+  <!-- D2: Weather -->
+  <div class="phone-wrap">
+    <div class="phone dark">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="d-bg">
+          <div class="safe"></div>
+          <div class="d-hdr"><h2>⚓ Kapten.ai</h2><p>📍 Sandhamn</p></div>
+          <div class="d-alert warn">
+            <span style="font-size:18px;">⚠️</span>
+            <div class="d-alert-body"><div class="msg">Vindbyarna når 16 m/s vid Sandhamn runt 14:30.</div><div class="act">Överväg att vänta i hamn tills 17:00.</div></div>
+            <div class="d-ack">OK</div>
+          </div>
+          <div class="d-wx or">
+            <div class="d-wx-loc">📍 Sandhamn · 13:45</div>
+            <div class="d-wx-row">
+              <div class="d-wx-stat"><span class="d-wx-val">11.2</span><span class="d-wx-unit">m/s</span><span class="d-wx-lbl">Vind</span></div>
+              <div class="d-wx-stat"><span class="d-wx-val">16.1</span><span class="d-wx-unit">m/s</span><span class="d-wx-lbl">Byar</span></div>
+              <div class="d-wx-stat"><span class="d-wx-val">1.8</span><span class="d-wx-unit">m</span><span class="d-wx-lbl">Vågor</span></div>
+              <div class="d-wx-stat"><span class="d-wx-val">SSV</span><span class="d-wx-unit">210°</span><span class="d-wx-lbl">Riktning</span></div>
+            </div>
+            <div class="d-wx-foot"><span class="d-bft">Bft 6 — Stormig bris</span></div>
+          </div>
+          <div class="d-wx gr">
+            <div class="d-wx-loc">📍 Stavsnäs · 16:00</div>
+            <div class="d-wx-row">
+              <div class="d-wx-stat"><span class="d-wx-val">7.4</span><span class="d-wx-unit">m/s</span><span class="d-wx-lbl">Vind</span></div>
+              <div class="d-wx-stat"><span class="d-wx-val">10.2</span><span class="d-wx-unit">m/s</span><span class="d-wx-lbl">Byar</span></div>
+              <div class="d-wx-stat"><span class="d-wx-val">0.9</span><span class="d-wx-unit">m</span><span class="d-wx-lbl">Vågor</span></div>
+              <div class="d-wx-stat"><span class="d-wx-val">SV</span><span class="d-wx-unit">225°</span><span class="d-wx-lbl">Riktning</span></div>
+            </div>
+            <div class="d-wx-foot"><span class="d-bft">Bft 4 — God bris</span></div>
+          </div>
+          <div class="d-sos"><h3>🆘 Nödsituation</h3><p>JRCC Sverige: <span>114 14</span></p><p>SSRS: <span>0771-990 100</span></p></div>
+        </div>
+        <div class="d-tabbar">
+          <div class="d-tab on"><span class="d-tab-icon">🌬️</span><span class="d-tab-lbl">Väder</span></div>
+          <div class="d-tab"><span class="d-tab-icon">🗺️</span><span class="d-tab-lbl">Rutt</span></div>
+          <div class="d-tab"><span class="d-tab-icon">📖</span><span class="d-tab-lbl">Guide</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="label dark-label">🌬 Väderkollen</div>
+  </div>
+
+  <!-- D3: Route -->
+  <div class="phone-wrap">
+    <div class="phone dark">
+      <div class="notch"></div>
+      <div class="screen">
+        <div style="background:#000;display:flex;flex-direction:column;flex:1;">
+          <div class="safe"></div>
+          <div class="d-hdr" style="padding-bottom:8px;"><h2 style="font-size:18px;">🗺️ Planera rutt</h2><p>Tryck på kartan för att lägga till waypoints</p></div>
+          <div class="d-map">
+            <div class="d-grid"></div><div class="d-water"></div>
+            <svg viewBox="0 0 300 330"><polyline class="d-rline" points="55,295 120,215 195,150 255,100"/></svg>
+            <div class="d-pin" style="left:39px;top:273px;"><div class="d-pdot s">⚓</div><div class="d-plbl">Start</div></div>
+            <div class="d-pin" style="left:104px;top:193px;"><div class="d-pdot w">2</div><div class="d-plbl">Sandhamn</div></div>
+            <div class="d-pin" style="left:179px;top:128px;"><div class="d-pdot w">3</div><div class="d-plbl">Stavsnäs</div></div>
+            <div class="d-pin" style="left:239px;top:78px;"><div class="d-pdot e">🏁</div><div class="d-plbl">Mål</div></div>
+            <div class="d-hint"><div class="d-hint-pill">🛰️ Hybrid kartvy</div></div>
+          </div>
+          <div class="d-rfoot">
+            <div class="d-rdis">⚠️ Ersätter inte sjökort eller navigationsutrustning</div>
+            <div class="d-rcnt">4 punkter lagda</div>
+            <div class="d-rbtns"><div class="d-btn-c">Rensa</div><div class="d-btn-a">🚢 Aktivera rutt</div></div>
+          </div>
+        </div>
+        <div class="d-tabbar">
+          <div class="d-tab"><span class="d-tab-icon">🌬️</span><span class="d-tab-lbl">Väder</span></div>
+          <div class="d-tab on"><span class="d-tab-icon">🗺️</span><span class="d-tab-lbl">Rutt</span></div>
+          <div class="d-tab"><span class="d-tab-icon">📖</span><span class="d-tab-lbl">Guide</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="label dark-label">🗺 Ruttplanering</div>
+  </div>
+
+  <!-- D4: Guide -->
+  <div class="phone-wrap">
+    <div class="phone dark">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="d-bg">
+          <div class="safe"></div>
+          <div class="d-hdr"><h2>📖 Guider</h2><p>Nyttig information för alla nivåer</p></div>
+          <div class="d-dcrd"><h3>⚠️ Viktig information</h3><p>Ersätter <b>inte</b> sjökort eller navigationsutrustning. Nödsituation: <b>114 14</b> / VHF <b>16</b>.</p></div>
+          <div class="d-gcrd"><span class="d-gicon">🌊</span><div class="d-gtxt"><div class="d-gtrow"><span class="d-gtitle">Förstå väderprognoser</span><span class="tag" style="background:#30D158">Nybörjare</span></div><div class="d-gdesc">Vad betyder vindstyrka och våghöjd?</div></div></div>
+          <div class="d-gcrd"><span class="d-gicon">⚓</span><div class="d-gtxt"><div class="d-gtrow"><span class="d-gtitle">Låna båt via Skippo?</span><span class="tag" style="background:#0A84FF">Skippo</span></div><div class="d-gdesc">Tips innan du tar ut en hyrbåt.</div></div></div>
+          <div class="d-gcrd"><span class="d-gicon">⛅</span><div class="d-gtxt"><div class="d-gtrow"><span class="d-gtitle">Beaufortskalan</span><span class="tag" style="background:#FF9F0A">Väder</span></div><div class="d-gdesc">Lär dig de 12 graderna.</div></div></div>
+          <div class="d-gcrd"><span class="d-gicon">🆘</span><div class="d-gtxt"><div class="d-gtrow"><span class="d-gtitle">Sjöräddning & nödanrop</span><span class="tag" style="background:#FF3B30">Säkerhet</span></div><div class="d-gdesc">VHF kanal 16 och hur du larmar.</div></div></div>
+        </div>
+        <div class="d-tabbar">
+          <div class="d-tab"><span class="d-tab-icon">🌬️</span><span class="d-tab-lbl">Väder</span></div>
+          <div class="d-tab"><span class="d-tab-icon">🗺️</span><span class="d-tab-lbl">Rutt</span></div>
+          <div class="d-tab on"><span class="d-tab-icon">📖</span><span class="d-tab-lbl">Guide</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="label dark-label">📖 Guider</div>
+  </div>
+
+  <!-- D5: Active -->
+  <div class="phone-wrap">
+    <div class="phone dark">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="d-bg">
+          <div class="safe"></div>
+          <div class="d-ahdr">
+            <div class="d-back">← Tillbaka</div>
+            <div class="d-atitle">Rutt 3 maj 2026</div>
+            <div class="d-abadge"><span>● AKTIV</span></div>
+          </div>
+          <div class="d-alert dang" style="margin:9px 12px;">
+            <span style="font-size:18px;">🚨</span>
+            <div class="d-alert-body"><div class="msg">Farliga vindbyar 18 m/s vid Sandhamn 14:30. Sök hamn.</div><div class="act">Närmaste: Stavsnäs, 4 nm NV.</div></div>
+            <div class="d-ack">OK</div>
+          </div>
+          <div class="d-wps">
+            <h3>Waypoints</h3>
+            <div class="d-wp"><span class="d-wp-n">⚓ Start</span><span class="d-wp-e">Avg. 12:00</span><span class="d-wp-w" style="color:#34C759">✓ Passerad</span></div>
+            <div class="d-wp"><span class="d-wp-n">Sandhamn</span><span class="d-wp-e">ETA 14:30</span><span class="d-wp-w">11.2 m/s</span></div>
+            <div class="d-wp"><span class="d-wp-n">Stavsnäs</span><span class="d-wp-e">ETA 16:15</span><span class="d-wp-w">7.4 m/s</span></div>
+            <div class="d-wp"><span class="d-wp-n">🏁 Mål</span><span class="d-wp-e">ETA 17:30</span><span class="d-wp-w">6.1 m/s</span></div>
+          </div>
+          <div class="d-cbtn">Avbryt rutt</div>
+        </div>
+      </div>
+    </div>
+    <div class="label dark-label">🚢 Aktiv rutt</div>
+  </div>
+</div>
+
+<!-- ROW 2: LIGHT / SJÖLÄGE -->
+<div style="text-align:center; margin-bottom:16px;">
+  <div class="sun-badge">☀️ Sjöläge — optimerat för direkt solljus</div>
+</div>
+<div class="section-label" style="color:#666;">☀️ Sjöläge / utomhus — hög kontrast, solljusläsbart</div>
+<div class="row" id="light-row">
+
+  <!-- L1: Disclaimer -->
+  <div class="phone-wrap">
+    <div class="phone light">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="l-dis-sheet">
+          <span class="anchor">⚓</span>
+          <h2 style="color:#000;">Viktig information</h2>
+          <p class="sub">Läs igenom innan du använder Kapten.ai</p>
+          <div class="l-dis-item"><h3>🗺️ Ersätter inte sjökort</h3><p>Kapten.ai ersätter <b>inte</b> officiella sjökort eller gällande sjöfartsregler.</p></div>
+          <div class="l-dis-item"><h3>🧭 Ej navigationsinstrument</h3><p>Ha alltid kompass och sjökort ombord. GPS i mobilen är ej tillförlitlig nog.</p></div>
+          <div class="l-dis-item"><h3>🆘 Vid nödsituation</h3><p>JRCC: <b>114 14</b> · VHF kanal <b>16</b> · SSRS: <b>0771-990 100</b></p></div>
+          <div class="l-dis-btn">Jag förstår och accepterar</div>
+          <p class="l-dis-foot">Du kan alltid läsa detta igen under Guider</p>
+        </div>
+      </div>
+    </div>
+    <div class="label light-label">Disclaimer</div>
+  </div>
+
+  <!-- L2: Weather -->
+  <div class="phone-wrap">
+    <div class="phone light">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="l-bg">
+          <div class="safe" style="background:#005DA8;"></div>
+          <div class="l-hdr"><h2>⚓ Kapten.ai</h2><p>📍 Sandhamn</p></div>
+          <div class="l-alert warn">
+            <span class="l-alert-icon">⚠️</span>
+            <div class="l-alert-body"><div class="msg">Vindbyarna når 16 m/s vid Sandhamn runt 14:30.</div><div class="act">Överväg att vänta i hamn tills 17:00.</div></div>
+            <div class="l-ack-warn">OK</div>
+          </div>
+          <div class="l-wx or">
+            <div class="l-wx-loc">📍 Sandhamn · 13:45</div>
+            <div class="l-wx-row">
+              <div class="l-wx-stat"><span class="l-wx-val">11.2</span><span class="l-wx-unit">m/s</span><span class="l-wx-lbl">Vind</span></div>
+              <div class="l-wx-stat"><span class="l-wx-val">16.1</span><span class="l-wx-unit">m/s</span><span class="l-wx-lbl">Byar</span></div>
+              <div class="l-wx-stat"><span class="l-wx-val">1.8</span><span class="l-wx-unit">m</span><span class="l-wx-lbl">Vågor</span></div>
+              <div class="l-wx-stat"><span class="l-wx-val">SSV</span><span class="l-wx-unit">210°</span><span class="l-wx-lbl">Riktning</span></div>
+            </div>
+            <div class="l-wx-foot"><span class="l-bft">Bft 6 — Stormig bris</span><span class="l-bft-badge">VARNING</span></div>
+          </div>
+          <div class="l-wx gr">
+            <div class="l-wx-loc">📍 Stavsnäs · 16:00</div>
+            <div class="l-wx-row">
+              <div class="l-wx-stat"><span class="l-wx-val">7.4</span><span class="l-wx-unit">m/s</span><span class="l-wx-lbl">Vind</span></div>
+              <div class="l-wx-stat"><span class="l-wx-val">10.2</span><span class="l-wx-unit">m/s</span><span class="l-wx-lbl">Byar</span></div>
+              <div class="l-wx-stat"><span class="l-wx-val">0.9</span><span class="l-wx-unit">m</span><span class="l-wx-lbl">Vågor</span></div>
+              <div class="l-wx-stat"><span class="l-wx-val">SV</span><span class="l-wx-unit">225°</span><span class="l-wx-lbl">Riktning</span></div>
+            </div>
+            <div class="l-wx-foot"><span class="l-bft">Bft 4 — God bris</span><span class="l-bft-badge" style="background:#006B2B;">OK</span></div>
+          </div>
+          <div class="l-sos"><h3>🆘 Nödsituation</h3><p>JRCC Sverige: <span>114 14</span></p><p>SSRS: <span>0771-990 100</span></p></div>
+        </div>
+        <div class="l-tabbar">
+          <div class="l-tab on"><span class="l-tab-icon">🌬️</span><span class="l-tab-lbl">Väder</span></div>
+          <div class="l-tab"><span class="l-tab-icon">🗺️</span><span class="l-tab-lbl">Rutt</span></div>
+          <div class="l-tab"><span class="l-tab-icon">📖</span><span class="l-tab-lbl">Guide</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="label light-label">🌬 Väderkollen</div>
+  </div>
+
+  <!-- L3: Route -->
+  <div class="phone-wrap">
+    <div class="phone light">
+      <div class="notch"></div>
+      <div class="screen">
+        <div style="background:#F2F4F7;display:flex;flex-direction:column;flex:1;">
+          <div class="safe" style="background:#005DA8;"></div>
+          <div class="l-hdr" style="padding-bottom:8px;"><h2 style="font-size:18px;">🗺️ Planera rutt</h2><p>Tryck på kartan för att lägga till waypoints</p></div>
+          <div class="l-map">
+            <div class="l-map-grid"></div>
+            <div class="l-map-land"></div><div class="l-map-land2"></div>
+            <svg viewBox="0 0 300 310"><polyline class="l-rline" points="55,278 120,200 192,138 250,90"/></svg>
+            <div class="l-pin" style="left:39px;top:256px;"><div class="l-pdot s">⚓</div><div class="l-plbl">Start</div></div>
+            <div class="l-pin" style="left:104px;top:178px;"><div class="l-pdot w">2</div><div class="l-plbl">Sandhamn</div></div>
+            <div class="l-pin" style="left:176px;top:116px;"><div class="l-pdot w">3</div><div class="l-plbl">Stavsnäs</div></div>
+            <div class="l-pin" style="left:234px;top:68px;"><div class="l-pdot e">🏁</div><div class="l-plbl">Mål</div></div>
+            <div class="l-hint"><div class="l-hint-pill">🛰️ Hybrid kartvy</div></div>
+          </div>
+          <div class="l-rfoot">
+            <div class="l-rdis">⚠️ Ersätter inte sjökort eller navigationsutrustning</div>
+            <div class="l-rcnt">4 punkter lagda</div>
+            <div class="l-rbtns"><div class="l-btn-c">Rensa</div><div class="l-btn-a">🚢 Aktivera rutt</div></div>
+          </div>
+        </div>
+        <div class="l-tabbar">
+          <div class="l-tab"><span class="l-tab-icon">🌬️</span><span class="l-tab-lbl">Väder</span></div>
+          <div class="l-tab on"><span class="l-tab-icon">🗺️</span><span class="l-tab-lbl">Rutt</span></div>
+          <div class="l-tab"><span class="l-tab-icon">📖</span><span class="l-tab-lbl">Guide</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="label light-label">🗺 Ruttplanering</div>
+  </div>
+
+  <!-- L4: Guide -->
+  <div class="phone-wrap">
+    <div class="phone light">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="l-bg">
+          <div class="safe" style="background:#005DA8;"></div>
+          <div class="l-hdr"><h2>📖 Guider</h2><p>Nyttig information för alla nivåer</p></div>
+          <div class="l-dcrd"><h3>⚠️ Viktig information</h3><p>Ersätter <b>inte</b> sjökort eller navigationsutrustning. Nödsituation: <b>114 14</b> / VHF <b>16</b>.</p></div>
+          <div class="l-gcrd"><span class="l-gicon">🌊</span><div class="l-gtxt"><div class="l-gtrow"><span class="l-gtitle">Förstå väderprognoser</span><span class="tag" style="background:#006B2B">Nybörjare</span></div><div class="l-gdesc">Vad betyder vindstyrka och våghöjd?</div></div></div>
+          <div class="l-gcrd"><span class="l-gicon">⚓</span><div class="l-gtxt"><div class="l-gtrow"><span class="l-gtitle">Låna båt via Skippo?</span><span class="tag" style="background:#005DA8">Skippo</span></div><div class="l-gdesc">Tips innan du tar ut en hyrbåt.</div></div></div>
+          <div class="l-gcrd"><span class="l-gicon">⛅</span><div class="l-gtxt"><div class="l-gtrow"><span class="l-gtitle">Beaufortskalan</span><span class="tag" style="background:#CC7A00">Väder</span></div><div class="l-gdesc">Lär dig de 12 graderna.</div></div></div>
+          <div class="l-gcrd"><span class="l-gicon">🆘</span><div class="l-gtxt"><div class="l-gtrow"><span class="l-gtitle">Sjöräddning & nödanrop</span><span class="tag" style="background:#CC0000">Säkerhet</span></div><div class="l-gdesc">VHF kanal 16 och hur du larmar.</div></div></div>
+          <div class="l-ext"><h3>🌊 SMHI Hav & Kust</h3><p>Officiella sjöprognoser från SMHI</p><a href="#">Öppna smhi.se →</a></div>
+        </div>
+        <div class="l-tabbar">
+          <div class="l-tab"><span class="l-tab-icon">🌬️</span><span class="l-tab-lbl">Väder</span></div>
+          <div class="l-tab"><span class="l-tab-icon">🗺️</span><span class="l-tab-lbl">Rutt</span></div>
+          <div class="l-tab on"><span class="l-tab-icon">📖</span><span class="l-tab-lbl">Guide</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="label light-label">📖 Guider</div>
+  </div>
+
+  <!-- L5: Active -->
+  <div class="phone-wrap">
+    <div class="phone light">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="l-bg">
+          <div class="safe" style="background:#005DA8;"></div>
+          <div class="l-ahdr">
+            <div class="l-back">← Tillbaka</div>
+            <div class="l-atitle">Rutt 3 maj 2026</div>
+            <div class="l-abadge"><span>● AKTIV</span></div>
+          </div>
+          <div class="l-alert dang" style="margin:8px 10px;">
+            <span class="l-alert-icon">🚨</span>
+            <div class="l-alert-body"><div class="msg">Farliga vindbyar 18 m/s vid Sandhamn 14:30. Sök hamn.</div><div class="act">Närmaste: Stavsnäs, 4 nm NV.</div></div>
+            <div class="l-ack-dang">OK</div>
+          </div>
+          <div class="l-wps">
+            <h3>Waypoints</h3>
+            <div class="l-wp"><span class="l-wp-n">⚓ Start</span><span class="l-wp-e">Avg. 12:00</span><span class="l-wp-w" style="color:#006B2B;">✓ Passerad</span></div>
+            <div class="l-wp"><span class="l-wp-n">Sandhamn</span><span class="l-wp-e">ETA 14:30</span><span class="l-wp-w">11.2 m/s</span></div>
+            <div class="l-wp"><span class="l-wp-n">Stavsnäs</span><span class="l-wp-e">ETA 16:15</span><span class="l-wp-w">7.4 m/s</span></div>
+            <div class="l-wp"><span class="l-wp-n">🏁 Mål</span><span class="l-wp-e">ETA 17:30</span><span class="l-wp-w">6.1 m/s</span></div>
+          </div>
+          <div class="l-cbtn">Avbryt rutt</div>
+        </div>
+      </div>
+    </div>
+    <div class="label light-label">🚢 Aktiv rutt</div>
+  </div>
+</div>
+
+</body>
+</html>
